@@ -1,0 +1,77 @@
+﻿using Microsoft.Data.SqlClient;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Proyecto.Data
+{
+    public class DataHelper
+    {
+        private static DataHelper _instance;
+        private SqlConnection _connection;
+
+        private DataHelper()
+        {
+            _connection = new SqlConnection(Properties.Resources.CadenaConexion);
+        }
+
+        public static DataHelper GetInstance()
+        {
+            if(_instance == null)
+            {
+                _instance = new DataHelper();
+            }
+            return _instance;
+        }
+
+        public DataTable ExecuteQuery(string query)     // para mandar consultas
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                _connection.Open();
+                var cmd = new SqlCommand(query, _connection);
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText = query;
+                dt.Load(cmd.ExecuteReader());
+            }
+            catch (SqlException ex)
+            {
+                // gestionar error
+                Console.WriteLine("Error en la consulta SQL: " + ex.Message);
+                
+            }
+            finally
+            {
+                _connection.Close();
+            }
+            return dt;
+        }
+
+        public DataTable ExecuteSPQuery(string sp)      // para mandar procedimientos almacenados
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                _connection.Open();
+                var cmd = new SqlCommand(sp, _connection);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = sp;
+                dt.Load(cmd.ExecuteReader());
+            }
+            catch (SqlException ex)
+            {
+                // gestionar error
+                dt = null;
+            }
+            finally
+            {
+                _connection.Close();
+            }
+            return dt;
+        }
+    }
+}
