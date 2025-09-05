@@ -52,9 +52,11 @@ namespace Proyecto.Data
                         IDCliente = (int)row["ID Cliente"],
                         Nombre = row["Nombre"].ToString(),
                         Apellido = row["Apellido"].ToString()
-                    },
+                    }
                     //Detalles = new List<DetalleFactura>()
+                    
                 };
+                lst.Add(factura);
             }
             return lst;
         }

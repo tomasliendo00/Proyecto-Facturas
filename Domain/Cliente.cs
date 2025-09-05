@@ -12,10 +12,10 @@ namespace Proyecto.Domain
         public string Nombre { get; set; }
         public string Apellido { get; set; }
 
-        public override string ToString()
-        {
-            return $"ID: {IDCliente} , Cliente:  {Apellido}, {Nombre}";
-        }
+        //public override string ToString()
+        //{
+        //    return $"ID: {IDCliente} , Cliente:  {Apellido}, {Nombre}";
+        //}
 
         public Cliente()
         {

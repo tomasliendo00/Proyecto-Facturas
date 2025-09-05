@@ -16,7 +16,7 @@ namespace Proyecto.Domain
 
         public override string ToString()
         {
-            return $"Factura nro: {NroFactura}, Fecha: {Fecha}, Forma de Pago: {FormaPago.Nombre}, Cliente: {Cliente.Nombre}, {Cliente.Apellido}";
+            return $"Factura nro: {NroFactura}, Fecha: {Fecha}, Forma de Pago: {FormaPago.Nombre}, Cliente: {Cliente.Apellido}, {Cliente.Nombre}";
         }
 
         public Factura()
@@ -28,7 +28,7 @@ namespace Proyecto.Domain
             //Detalles = new List<DetalleFactura>();
         }
 
-        public Factura(int nroFactura, DateTime fecha, FormaPago formaPago, Cliente cliente, List<DetalleFactura> detalles)
+        public Factura(int nroFactura, DateTime fecha, FormaPago formaPago, Cliente cliente/*, List<DetalleFactura> detalles*/)
         {
             this.NroFactura = nroFactura;
             this.Fecha = fecha;

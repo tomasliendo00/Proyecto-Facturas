@@ -10,10 +10,10 @@ namespace Proyecto.Domain
     {
         public int IDFormaPago { get; set; }
         public string Nombre { get; set; }
-        public override string ToString()
-        {
-            return $"ID: {IDFormaPago}, Forma de pago: {Nombre}";
-        }
+        //public override string ToString()
+        //{
+        //    return $"ID: {IDFormaPago}, Forma de pago: {Nombre}";
+        //}
 
         public FormaPago()
         {
