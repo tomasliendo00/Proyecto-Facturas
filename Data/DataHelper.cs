@@ -20,7 +20,7 @@ namespace Proyecto.Data
 
         public static DataHelper GetInstance()
         {
-            if(_instance == null)
+            if (_instance == null)
             {
                 _instance = new DataHelper();
             }
@@ -42,7 +42,6 @@ namespace Proyecto.Data
             {
                 // gestionar error
                 Console.WriteLine("Error en la consulta SQL: " + ex.Message);
-                
             }
             finally
             {
@@ -53,25 +52,66 @@ namespace Proyecto.Data
 
         public DataTable ExecuteSPQuery(string sp)      // para mandar procedimientos almacenados
         {
+            return ExecuteSPQuery(sp, null);
+        }
+
+        public DataTable ExecuteSPQuery(string sp, List<SqlParameter> parameters)
+        {
             DataTable dt = new DataTable();
+
             try
             {
                 _connection.Open();
                 var cmd = new SqlCommand(sp, _connection);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.CommandText = sp;
+                // Agregar los parámetros al comando
+                if (parameters != null)
+                {
+                    foreach (var param in parameters)
+                    {
+                        cmd.Parameters.Add(param);
+                    }
+                }
                 dt.Load(cmd.ExecuteReader());
             }
             catch (SqlException ex)
             {
                 // gestionar error
-                dt = null;
+                Console.WriteLine("Error en la consulta SQL: " + ex.Message);
             }
             finally
             {
                 _connection.Close();
             }
             return dt;
+        }
+
+        public int ExecuteSPNonQuery(string sp, List<SqlParameter> parameters)
+        {
+            int rowsAffected = 0;
+            try
+            {
+                _connection.Open();
+                var cmd = new SqlCommand(sp, _connection);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = sp;
+
+                if (parameters != null && parameters.Count > 0)
+                    cmd.Parameters.AddRange(parameters.ToArray());
+
+                rowsAffected = cmd.ExecuteNonQuery();
+            }
+            catch(SqlException ex)
+            {
+                // gestionar error
+                Console.WriteLine("Error en la consulta SQL: " + ex.Message);
+            }
+            finally
+            {
+                _connection.Close();
+            }
+            return rowsAffected;
         }
     }
 }

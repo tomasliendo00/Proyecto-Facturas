@@ -1,4 +1,5 @@
-﻿using Proyecto.Domain;
+﻿using Microsoft.Data.SqlClient;
+using Proyecto.Domain;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -15,26 +16,43 @@ namespace Proyecto.Data
 
         public bool Delete(int id) // elimina una factura por su ID
         {
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@nro_factura", id)
+            };            
+
             try
             {
-                DataHelper.GetInstance().ExecuteQuery($"DELETE FROM Facturas WHERE nro_factura = {id}");
-                //DataHelper.GetInstance().ExecuteSPQuery("SP_DELETE_FACTURA");
+                int rows = DataHelper.GetInstance().ExecuteSPNonQuery("SP_DELETE_FACTURA", parameters);
+                
+                if(rows > 0)
+                {
+                    Console.WriteLine("Factura eliminada correctamente.");
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine("No se encontró la factura con el ID especificado.");
+                    return false;
+                }
+                
             }
             catch (Exception ex)
             {
+                // gestionar error
+                Console.WriteLine("Error al eliminar la factura: " + ex.Message);
                 return false;
-            }
-            return true;                      
+            }            
         }
 
         public List<Factura> GetAll()
         {
             lst.Clear(); // limpia la lista para evitar duplicados en llamadas sucesivas
 
-            string consulta = "select * from VistaFacturas";
+            //string consulta = "select * from VistaFacturas";
 
-            var dt = DataHelper.GetInstance().ExecuteQuery(consulta); // se conecta a la BdD y envia la consulta
-            //var dt = DataHelper.GetInstance().ExecuteSPQuery("SP_GET_ALL_FACTURAS");
+            //var dt = DataHelper.GetInstance().ExecuteQuery(consulta); // se conecta a la BdD y envia la consulta
+            var dt = DataHelper.GetInstance().ExecuteSPQuery("SP_GET_ALL_FACTURAS2");
 
             foreach (DataRow row in dt.Rows) // recorre el resultado de la consulta y crea objetos Factura
             {
@@ -65,14 +83,24 @@ namespace Proyecto.Data
         {
             lst.Clear();
 
-            var dt = DataHelper.GetInstance().ExecuteQuery($"SELECT * FROM Facturas WHERE nro_factura = {id}");
-            //var dt = DataHelper.GetInstance().ExecuteSPQuery("SP_GET_FACTURA_BY_ID");
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@id", id)
+            };
+
+            //var dt = DataHelper.GetInstance().ExecuteQuery($"SELECT * FROM Facturas WHERE nro_factura = {id}");
+            var dt = DataHelper.GetInstance().ExecuteSPQuery("SP_GET_BY_ID", parameters);
 
             Factura f = new Factura();
             f.NroFactura = (int)dt.Rows[0]["nro_factura"];
             f.Fecha = (DateTime)dt.Rows[0]["fecha"];
-            f.FormaPago.IDFormaPago = (int)dt.Rows[0]["id_forma_pago"];
-            f.Cliente.IDCliente = (int)dt.Rows[0]["id_cliente"];
+            f.FormaPago = new FormaPago();
+                f.FormaPago.IDFormaPago = (int)dt.Rows[0]["ID Forma Pago"];
+                f.FormaPago.Nombre = dt.Rows[0]["Forma Pago"].ToString();
+            f.Cliente = new Cliente();
+                f.Cliente.IDCliente = (int)dt.Rows[0]["ID Cliente"];
+                f.Cliente.Nombre = dt.Rows[0]["nombre"].ToString();
+                f.Cliente.Apellido = dt.Rows[0]["apellido"].ToString();
             //f.Detalles = new List<DetalleFactura>();
             lst.Add(f);
 

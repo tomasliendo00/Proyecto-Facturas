@@ -10,3 +10,9 @@ foreach(var f in facturas)
 {
     Console.WriteLine(f);
 }
+
+var id = repo.GetByID(2);
+
+Console.WriteLine(id);
+
+repo.Delete(8);
