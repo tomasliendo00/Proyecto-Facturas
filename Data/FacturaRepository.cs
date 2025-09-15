@@ -14,6 +14,11 @@ namespace Proyecto.Data
 
         List<Factura> lst = new List<Factura>(); // lista para almacenar los objetos Factura recuperados de la BdD
 
+        public bool CrearFactura(Factura factura)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool Delete(int id) // elimina una factura por su ID
         {
             var parameters = new List<SqlParameter>
@@ -49,14 +54,14 @@ namespace Proyecto.Data
         {
             lst.Clear(); // limpia la lista para evitar duplicados en llamadas sucesivas
 
-            //string consulta = "select * from VistaFacturas";
+            
+            var result = new List<Factura>();
 
-            //var dt = DataHelper.GetInstance().ExecuteQuery(consulta); // se conecta a la BdD y envia la consulta
             var dt = DataHelper.GetInstance().ExecuteSPQuery("SP_GET_ALL_FACTURAS2");
 
-            foreach (DataRow row in dt.Rows) // recorre el resultado de la consulta y crea objetos Factura
+            foreach (DataRow row in dt.Rows)
             {
-                var factura = new Factura
+                result.Add(new Factura
                 {
                     NroFactura = (int)row["nro_factura"],
                     Fecha = (DateTime)row["fecha"],
@@ -71,15 +76,12 @@ namespace Proyecto.Data
                         Nombre = row["Nombre"].ToString(),
                         Apellido = row["Apellido"].ToString()
                     }
-                    //Detalles = new List<DetalleFactura>()
-                    
-                };
-                lst.Add(factura);
+                });
             }
-            return lst;
+            return result;
         }
 
-        public Factura GetByID(int id)
+        public Factura? GetByID(int id)
         {
             lst.Clear();
 
@@ -87,40 +89,83 @@ namespace Proyecto.Data
             {
                 new SqlParameter("@id", id)
             };
-
-            //var dt = DataHelper.GetInstance().ExecuteQuery($"SELECT * FROM Facturas WHERE nro_factura = {id}");
+                       
             var dt = DataHelper.GetInstance().ExecuteSPQuery("SP_GET_BY_ID", parameters);
 
-            Factura f = new Factura();
-            f.NroFactura = (int)dt.Rows[0]["nro_factura"];
-            f.Fecha = (DateTime)dt.Rows[0]["fecha"];
-            f.FormaPago = new FormaPago();
-                f.FormaPago.IDFormaPago = (int)dt.Rows[0]["ID Forma Pago"];
-                f.FormaPago.Nombre = dt.Rows[0]["Forma Pago"].ToString();
-            f.Cliente = new Cliente();
-                f.Cliente.IDCliente = (int)dt.Rows[0]["ID Cliente"];
-                f.Cliente.Nombre = dt.Rows[0]["nombre"].ToString();
-                f.Cliente.Apellido = dt.Rows[0]["apellido"].ToString();
-            //f.Detalles = new List<DetalleFactura>();
-            lst.Add(f);
+            if(dt.Rows.Count == 0)
+                return null;
 
-            return f;
+            var r = dt.Rows[0];
+            return new Factura
+            {
+                NroFactura = (int)r["nro_factura"],
+                Fecha = (DateTime)r["fecha"],
+                FormaPago = new FormaPago
+                {
+                    IDFormaPago = (int)r["ID Forma Pago"],
+                    Nombre = r["Forma Pago"].ToString()
+                },
+                Cliente = new Cliente
+                {
+                    IDCliente = (int)r["ID Cliente"],
+                    Nombre = r["nombre"].ToString(),
+                    Apellido = r["apellido"].ToString()
+                }
+            };
+        }
+
+        public List<DetalleFactura> ObtenerDetalles()
+        {
+            throw new NotImplementedException();
         }
 
         public bool Save(Factura factura)
         {
-            int rowsAffected = 0;
+            using (var cn = DataHelper.GetInstance().GetConnection())
+            {
+                cn.Open();
+                using (var tx = cn.BeginTransaction())
+                {
+                    try
+                    {
+                        var pCab = new List<SqlParameter>
+                        {
+                            new SqlParameter("@fecha", factura.Fecha),
+                            new SqlParameter("@id_forma_pago", factura.FormaPago.IDFormaPago),
+                            new SqlParameter("@id_cliente", factura.Cliente.IDCliente),
+                            new SqlParameter("@nro_generado", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                        };
 
-            rowsAffected = DataHelper.GetInstance().ExecuteQuery($"INSERT INTO Facturas (fecha, id_forma_pago, id_cliente) VALUES " +
-                                                                 $"('{factura.Fecha.ToString("yyyy-MM-dd")}', {factura.FormaPago.IDFormaPago}," +
-                                                                 $" {factura.Cliente.IDCliente})").Rows.Count;
+                        DataHelper.GetInstance().ExecuteSPNonQuery("SP_SAVE_FACTURA", pCab, cn, tx); // corregir esto
 
-            //rowsAffected = DataHelper.GetInstance().ExecuteSPQuery("SP_INSERT_FACTURA").Rows.Count;
+                        int nroGenerado = (int)pCab.Last().Value; // obtiene el nro de factura generado por la BdD
 
-            if (rowsAffected > 0)
-                return true;
-            else
-                return false;
+                        factura.NroFactura = nroGenerado; // asigna el nro de factura al objeto factura
+
+                        // Insertar los detalles de la factura
+
+                        foreach (var d in factura.ListaDetalles)
+                        {
+                            var pDet = new List<SqlParameter>
+                            {
+                                new SqlParameter("@nro_factura", nroGenerado),
+                                new SqlParameter("@id_producto", d.Articulo.IDArticulo),
+                                new SqlParameter("@cantidad", d.Cantidad),
+                                new SqlParameter("@precio_unitario", d.Articulo.Precio)
+                            };
+                            DataHelper.GetInstance().ExecuteSPNonQuery("SP_INSERT_DETALLE_FACTURA", pDet, cn, tx);
+                        }
+
+                        tx.Commit();
+                        return true;
+                    }
+                    catch (Exception)
+                    {
+                        tx.Rollback();
+                        throw;
+                    }
+                }
+            }
         }
     }
 }

@@ -16,5 +16,7 @@ namespace Proyecto.Data
         bool Save(Factura factura);
 
         bool Delete(int id);
+        List<DetalleFactura> ObtenerDetalles();
+        bool CrearFactura(Factura factura);
     }
 }

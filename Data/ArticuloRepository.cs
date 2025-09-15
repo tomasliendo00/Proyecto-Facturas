@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Proyecto.Data
 {
-    internal class ArticuloRepository : IArticuloRepository
+    public class ArticuloRepository : IArticuloRepository
     {
         public bool Delete(int id)
         {

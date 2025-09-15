@@ -10,8 +10,8 @@ namespace Proyecto.Data
 {
     public class DataHelper
     {
-        private static DataHelper _instance;
-        private SqlConnection _connection;
+        public static DataHelper _instance;
+        public SqlConnection _connection;
 
         private DataHelper()
         {
@@ -26,6 +26,12 @@ namespace Proyecto.Data
             }
             return _instance;
         }
+
+        public SqlConnection GetConnection()
+        {
+            return _connection;
+        }
+
 
         public DataTable ExecuteQuery(string query)     // para mandar consultas
         {
@@ -113,5 +119,32 @@ namespace Proyecto.Data
             }
             return rowsAffected;
         }
+
+        public int ExecuteSPNonQuery(string sp, List<SqlParameter> parameters, SqlConnection cn, SqlTransaction tx)
+        {
+            int rowsAffected = 0;
+            SqlCommand cmd = null;
+            try
+            {                
+                cmd = new SqlCommand(sp, cn, tx);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                if (parameters != null && parameters.Count > 0)
+                    cmd.Parameters.AddRange(parameters.ToArray());
+
+                rowsAffected = cmd.ExecuteNonQuery();
+            }
+            catch (SqlException ex)
+            {                
+                Console.WriteLine("Error en la consulta SQL (Tx): " + ex.Message);
+                rowsAffected = -1;
+            }
+            finally
+            {
+                if (cmd != null) cmd.Dispose();
+            }
+            return rowsAffected;
+        }
+
     }
 }

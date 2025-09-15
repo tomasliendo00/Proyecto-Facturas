@@ -12,7 +12,7 @@ namespace Proyecto.Domain
         public DateTime Fecha { get; set; }
         public FormaPago FormaPago { get; set; }
         public Cliente Cliente { get; set; }
-        //public List<DetalleFactura> Detalles { get; set; }
+        public List<DetalleFactura> ListaDetalles { get; set; }
 
         public override string ToString()
         {
@@ -25,16 +25,16 @@ namespace Proyecto.Domain
             Fecha = DateTime.Now;
             FormaPago = new FormaPago();
             Cliente = new Cliente();
-            //Detalles = new List<DetalleFactura>();
+            ListaDetalles = new List<DetalleFactura>();
         }
 
-        public Factura(int nroFactura, DateTime fecha, FormaPago formaPago, Cliente cliente/*, List<DetalleFactura> detalles*/)
+        public Factura(int nroFactura, DateTime fecha, FormaPago formaPago, Cliente cliente, List<DetalleFactura> detalles)
         {
             this.NroFactura = nroFactura;
             this.Fecha = fecha;
             this.FormaPago = formaPago;
             this.Cliente = cliente;
-            //this.Detalles = detalles;
+            this.ListaDetalles = detalles;
         }
     }
 }

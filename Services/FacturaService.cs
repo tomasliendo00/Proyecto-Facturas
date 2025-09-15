@@ -8,28 +8,34 @@ using System.Threading.Tasks;
 
 namespace Proyecto.Services
 {
-    public class FacturaService
+    public class FacturaService : IFacturaService
     {
-        private IFacturaRepository _repository;
+        private IFacturaRepository _facturaRepo;
 
-        public FacturaService()
+        public FacturaService(IFacturaRepository facturaRepo)
         {
-            _repository = new FacturaRepository();
+            _facturaRepo = facturaRepo;
         }
 
-        public List<Factura> GetFacturas()
+        public List<DetalleFactura> ConsultarDetalle()
         {
-            return _repository.GetAll();
+            return _facturaRepo.ObtenerDetalles();
         }
 
-        public Factura GetFacturaByID(int id)
+        public bool RegistrarFactura(Factura factura)
         {
-            return _repository.GetByID(id);
+            return _facturaRepo.CrearFactura(factura); 
         }
 
-        public bool SaveFactura(Factura factura)
+        public bool EliminarFactura(int id)
         {
-            return _repository.Save(factura);
+            if(id <= 0)
+                throw new ArgumentException("El ID debe ser un número positivo.");
+            return _facturaRepo.Delete(id);
+        }
+        public bool ActualizarFactura(Factura factura)
+        {
+            throw new NotImplementedException();
         }
     }
 }
