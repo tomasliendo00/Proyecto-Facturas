@@ -121,7 +121,7 @@ namespace Proyecto.Data
         }
 
         public int ExecuteSPNonQuery(string sp, List<SqlParameter> parameters, SqlConnection cn, SqlTransaction tx)
-        {
+        { 
             int rowsAffected = 0;
             SqlCommand cmd = null;
             try
